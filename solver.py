@@ -1,13 +1,48 @@
-eq_1 = input("Enter the first equation: format ax + by = c: ")
-eq_2 = input("Enter the second equation: format dx + ey = f: ")
+def solve_system(matrix):
+    """
+    matrix: list of lists, each inner list is a row of coefficients
+    followed by the constant, e.g. for:
+        2x + 3y - z = 5
+        4x + y + 2z = 6
+        -2x + 5y - z = 3
+    matrix = [
+        [2, 3, -1, 5],
+        [4, 1, 2, 6],
+        [-2, 5, -1, 3]
+    ]
+    """
+    n = len(matrix)
 
-eq_1 = eq_1.replace(" ", "").replace("=", "+").split("+")
-eq_2 = eq_2.replace(" ", "").replace("=", "+").split("+")
+    # Forward elimination
+    for i in range(n):
+        # Partial pivoting: swap to avoid dividing by zero/small numbers
+        max_row = max(range(i, n), key=lambda r: abs(matrix[r][i]))
+        matrix[i], matrix[max_row] = matrix[max_row], matrix[i]
 
-a, b, c, d, e, f = int(eq_1[0][:-1]), int(eq_1[1][:-1]), int(eq_1[2]), int(eq_2[0][:-1]), int(eq_2[1][:-1]), int(eq_2[2])
+        pivot = matrix[i][i]
+        if pivot == 0:
+            raise ValueError("No unique solution exists")
 
-det = a*e - b*d
-x = (c*e - b*f) / det
-y = (a*f - c*d) / det
+        for j in range(i + 1, n):
+            factor = matrix[j][i] / pivot
+            for k in range(i, n + 1):
+                matrix[j][k] -= factor * matrix[i][k]
 
-print(f"x = {x}, y = {y}")
+    # Back substitution
+    solutions = [0] * n
+    for i in range(n - 1, -1, -1):
+        solutions[i] = matrix[i][n]
+        for j in range(i + 1, n):
+            solutions[i] -= matrix[i][j] * solutions[j]
+        solutions[i] /= matrix[i][i]
+
+    return solutions
+
+
+# Example usage
+system = [
+    [2, 3, -1, 5],
+    [4, 1, 2, 6],
+    [-2, 5, -1, 3]
+]
+print(solve_system(system))
